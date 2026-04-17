@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: rootproject/root:latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install .
+      - name: Test import
+        run: |
+          python3 -c "import rootplotlib; print('Import successful!')"
