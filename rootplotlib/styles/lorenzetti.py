@@ -1,20 +1,36 @@
 
+from typing import Optional
+import rootplotlib as rpl
+from ROOT import TLatex, gPad
 
 __all__ = [
     'set_lorenzetti_style',
     'set_lorenzetti_label',
 ]
 
-import rootplotlib as rpl
 
-from ROOT import TLatex, gPad
-
-
-def set_lorenzetti_style():
+def set_lorenzetti_style() -> None:
+    """
+    Applies the Lorenzetti style (currently based on ATLAS style).
+    """
     rpl.set_atlas_style ()
 
 
-def set_lorenzetti_label( x, y, text, pad=None):
+def set_lorenzetti_label( x: float, y: float, text: str, pad: Optional[str] = None) -> None:
+  """
+  Draws the 'Lorenzetti' label with additional status text.
+
+  Parameters
+  ----------
+  x : float
+      X-coordinate in NDC.
+  y : float
+      Y-coordinate in NDC.
+  text : str
+      Status text to display next to 'Lorenzetti'.
+  pad : str, optional
+      The name of the pad.
+  """
 
   fig = rpl.get_figure()
   canvas = fig.get_pad(pad)

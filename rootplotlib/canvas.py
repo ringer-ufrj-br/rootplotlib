@@ -1,15 +1,33 @@
 
 __all__ = ['format_canvas_axes', 'create_canvas', 'create_ratio_canvas', 'format_ratio_canvas_axes']
 
+from typing import Optional, List
 from ROOT import TCanvas, TPad
 import ROOT
 import rootplotlib as rpl
+import uuid
 
 
-def create_canvas(name: str,
-                  title: str ="",
-                  canw: int=700,
-                  canh: int=500 ) -> rpl.Figure:
+
+def generate_canvas_name() -> str:
+    """
+    Generates a random 8-character UUID string.
+
+    Returns
+    -------
+    str
+        An 8-character random string.
+    """
+    return "canvas_"+str(uuid.uuid4())[:8]
+
+
+
+def create_canvas(canw: int=700,
+                  canh: int=500,
+                  name: str="",
+                  title: str =""
+                ) -> 'rpl.Figure':
+                
     """
     Creates a Figure object with the given canvas parameters
 
@@ -27,19 +45,20 @@ def create_canvas(name: str,
     Returns
     -------
     rpl.Figure
-        _description_
+        Created Figure object
     """
+    name = generate_canvas_name() if name=="" else name
     canvas = TCanvas( name, title, canw, canh )
     fig = rpl.Figure(canvas)
     rpl.set_figure(fig)
     return fig
 
-def create_ratio_canvas(name: str,
-                        title: str="",
-                        canw: int=700,
+def create_ratio_canvas(canw: int=700,
                         canh: int=500,
+                        name: str="",
+                        title: str="",
                         ratio_size_as_fraction: float=0.35,
-                        drawopt: str='pE1') -> rpl.Figure:
+                        drawopt: str='pE1') -> 'rpl.Figure':
     """
     Creates a Figure object with a canvas with two pads:
     - A bigger one on top named pad_top
@@ -66,7 +85,7 @@ def create_ratio_canvas(name: str,
     rpl.Figure
         Rootplotlib figure with the canvas created
     """
-
+    name = generate_canvas_name() if name=="" else name
     canvas = ROOT.TCanvas(name,title,canw,canh)
     fig = rpl.Figure(canvas)
     rpl.set_figure(fig)
@@ -102,34 +121,83 @@ def create_ratio_canvas(name: str,
 
 
 
-def format_canvas_axes(  XTitleSize   = 22
-                        ,XTitleOffset = 0.98
-                        ,XTitleFont   = 43
-                        ,XLabelSize   = 22
-                        ,XLabelOffset = 0.002
-                        ,XLabelFont   = 43
-                        ,XNDiv = None
+def format_canvas_axes( XTitleSize: int = 22
+                        ,XTitleOffset: float = 0.98
+                        ,XTitleFont: int = 43
+                        ,XLabelSize: int = 22
+                        ,XLabelOffset: float = 0.002
+                        ,XLabelFont: int = 43
+                        ,XNDiv: Optional[List[int]] = None
 
-                        ,YTitleSize   = 22
-                        ,YTitleOffset = 1.75
-                        ,YTitleFont   = 43
-                        ,YLabelSize   = 22
-                        ,YLabelOffset = 0.006
-                        ,YLabelFont   = 43
-                        ,YNDiv = [10,5,0]
+                        ,YTitleSize: int = 22
+                        ,YTitleOffset: float = 1.75
+                        ,YTitleFont: int = 43
+                        ,YLabelSize: int = 22
+                        ,YLabelOffset: float = 0.006
+                        ,YLabelFont: int = 43
+                        ,YNDiv: List[int] = [10, 5, 0]
 
-                        ,ZTitleSize   = 22
-                        ,ZTitleOffset = 0.85
-                        ,ZTitleFont   = 43
-                        ,ZLabelSize   = 22
-                        ,ZLabelOffset = 0.002
-                        ,ZLabelFont   = 43
-                        ,pad = None
-                        ,fig = None
-                        ) :
+                        ,ZTitleSize: int = 22
+                        ,ZTitleOffset: float = 0.85
+                        ,ZTitleFont: int = 43
+                        ,ZLabelSize: int = 22
+                        ,ZLabelOffset: float = 0.002
+                        ,ZLabelFont: int = 43
+                        ,pad: Optional[str] = None
+                        ,fig: Optional['rpl.Figure'] = None
+                        ) -> None:
+    """
+    Sets advanced formatting options for X, Y, and Z axes for a specific pad.
+
+    Parameters
+    ----------
+    XTitleSize : int, optional
+        Font size for the X-axis title, by default 22.
+    XTitleOffset : float, optional
+        Offset for the X-axis title, by default 0.98.
+    XTitleFont : int, optional
+        Font style for the X-axis title, by default 43.
+    XLabelSize : int, optional
+        Font size for the X-axis labels, by default 22.
+    XLabelOffset : float, optional
+        Offset for the X-axis labels, by default 0.002.
+    XLabelFont : int, optional
+        Font style for the X-axis labels, by default 43.
+    XNDiv : List[int], optional
+        Number of divisions for the X-axis [nPrimary, nSecondary, nTertiary].
+    YTitleSize : int, optional
+        Font size for the Y-axis title, by default 22.
+    YTitleOffset : float, optional
+        Offset for the Y-axis title, by default 1.75.
+    YTitleFont : int, optional
+        Font style for the Y-axis title, by default 43.
+    YLabelSize : int, optional
+        Font size for the Y-axis labels, by default 22.
+    YLabelOffset : float, optional
+        Offset for the Y-axis labels, by default 0.006.
+    YLabelFont : int, optional
+        Font style for the Y-axis labels, by default 43.
+    YNDiv : List[int], optional
+        Number of divisions for the Y-axis, by default [10, 5, 0].
+    ZTitleSize : int, optional
+        Font size for the Z-axis title, by default 22.
+    ZTitleOffset : float, optional
+        Offset for the Z-axis title, by default 0.85.
+    ZTitleFont : int, optional
+        Font style for the Z-axis title, by default 43.
+    ZLabelSize : int, optional
+        Font size for the Z-axis labels, by default 22.
+    ZLabelOffset : float, optional
+        Offset for the Z-axis labels, by default 0.002.
+    ZLabelFont : int, optional
+        Font style for the Z-axis labels, by default 43.
+    pad : str, optional
+        The name of the pad to format.
+    fig : rpl.Figure, optional
+        The figure to use. If None, the current global figure is used.
+    """
     
-    if fig is None:
-        fig = rpl.get_figure()
+    fig = rpl.get_figure() if fig is None else fig
     canvas = fig.get_pad(pad)
 
     for primitive in canvas.GetListOfPrimitives() :
@@ -167,30 +235,40 @@ def format_canvas_axes(  XTitleSize   = 22
 
 
 
-def format_ratio_canvas_axes(  XTitleSize   = 22
-                              ,XTitleOffset = 0.98
-                              ,XTitleFont   = 43
-                              ,XLabelSize   = 22
-                              ,XLabelOffset = 0.002
-                              ,XLabelFont   = 43
-      
-                              ,YTitleSize   = 22
-                              ,YTitleOffset = 1.75
-                              ,YTitleFont   = 43
-                              ,YLabelSize   = 22
-                              ,YLabelOffset = 0.006
-                              ,YLabelFont   = 43
-                              ,YNDiv = [10,5,0]
-      
-                              ,ZTitleSize   = 22
-                              ,ZTitleOffset = 0.85
-                              ,ZTitleFont   = 43
-                              ,ZLabelSize   = 22
-                              ,ZLabelOffset = 0.002
-                              ,ZLabelFont   = 43
-                              ,fig = None
-                              ) :
+def format_ratio_canvas_axes(  XTitleSize: int = 22
+                               ,XTitleOffset: float = 0.98
+                               ,XTitleFont: int = 43
+                               ,XLabelSize: int = 22
+                               ,XLabelOffset: float = 0.002
+                               ,XLabelFont: int = 43
+       
+                               ,YTitleSize: int = 22
+                               ,YTitleOffset: float = 1.75
+                               ,YTitleFont: int = 43
+                               ,YLabelSize: int = 22
+                               ,YLabelOffset: float = 0.006
+                               ,YLabelFont: int = 43
+                               ,YNDiv: List[int] = [10, 5, 0]
+       
+                               ,ZTitleSize: int = 22
+                               ,ZTitleOffset: float = 0.85
+                               ,ZTitleFont: int = 43
+                               ,ZLabelSize: int = 22
+                               ,ZLabelOffset: float = 0.002
+                               ,ZLabelFont: int = 43
+                               ,fig: Optional['rpl.Figure'] = None
+                               ) -> None:
+    """
+    Specifically formats the axes for a ratio canvas (both top and bottom pads).
 
+    Parameters
+    ----------
+    XTitleSize : int, optional
+        Font size for the X-axis title, by default 22.
+    ... [same as format_canvas_axes]
+    fig : rpl.Figure, optional
+        The figure to use. If None, the current global figure is used.
+    """
        
     format_canvas_axes(fig=fig, pad='pad_top',XLabelOffset=0.1
                      ,XTitleSize=XTitleSize,XTitleOffset=XTitleOffset,XTitleFont=XTitleFont
@@ -200,7 +278,7 @@ def format_ratio_canvas_axes(  XTitleSize   = 22
                      ,YNDiv=YNDiv
                      ,ZTitleSize=ZTitleSize,ZTitleOffset=ZTitleOffset,ZTitleFont=ZTitleFont
                      ,ZLabelSize=ZLabelSize,ZLabelOffset=ZLabelOffset,ZLabelFont=ZLabelFont
-                      )
+                       )
     format_canvas_axes(fig=fig, pad='pad_bot',YLabelOffset=0.009
                      ,XTitleSize=XTitleSize,XTitleOffset=XTitleOffset,XTitleFont=XTitleFont
                      ,XLabelSize=XLabelSize,XLabelOffset=XLabelOffset,XLabelFont=XLabelFont
@@ -212,6 +290,16 @@ def format_ratio_canvas_axes(  XTitleSize   = 22
                      )
 
 
-def savefig( output ):
-    fig = rpl.get_figure()
+def savefig( output: str, fig: Optional['rpl.Figure'] = None ) -> None:
+    """
+    Saves the current global figure or a specific Figure object to a file.
+
+    Parameters
+    ----------
+    output : str
+        Path to the output file (e.g., 'plot.pdf').
+    fig : rpl.Figure, optional
+        The figure to save. If None, the current global figure is used.
+    """
+    fig = rpl.get_figure() if not fig else fig
     fig.savefig(output)

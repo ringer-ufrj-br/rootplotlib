@@ -1,9 +1,10 @@
+__all__ = ['set_figure', 'get_figure', 'clear', 'suppress_root_warnings']
 
 import gc
 import ROOT
 from typing import Union
 
-__all__ = ['set_figure', 'get_figure', 'clear', 'suppress_root_warnings']
+
 
 from . import figures
 __all__.extend( figures.__all__ )
@@ -11,8 +12,12 @@ from .figures import *
 
 global __figure
 __figure = Figure()
+__figure_stack = []
 
-def suppress_root_warnings():
+def suppress_root_warnings() -> None:
+    """
+    Suppresses ROOT warnings and errors, setting ignore level to kFatal.
+    """
     ROOT.gErrorIgnoreLevel=ROOT.kFatal
 
 def set_figure(canvas: Union[ROOT.TCanvas, Figure]):
@@ -27,10 +32,13 @@ def set_figure(canvas: Union[ROOT.TCanvas, Figure]):
         containing it.
     """
     global __figure
+    global __figure_stack
     if type(canvas) is Figure:
         __figure = canvas
     else:
         __figure = Figure(canvas)
+        
+    __figure_stack.append(__figure)
 
 def get_figure() -> Figure:
     """
@@ -44,11 +52,13 @@ def get_figure() -> Figure:
     global __figure
     return __figure
 
-def clear():
+def clear() -> None:
     """
     Clears current figure
     """
     get_figure().clear()
+    ROOT.gDirectory.Clear()
+
 
 from . import axis
 __all__.extend( axis.__all__ )

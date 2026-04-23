@@ -2,57 +2,118 @@
 __all__ = ['Figure']
 
 
+from typing import Any, Optional, Tuple, List, Union
+import ROOT
 from ROOT import TH1, TH2
 import itertools
 import gc
 import sys
 
 class Figure( object ):
+    """
+    Main object to handle ROOT plots and canvases.
+    """
 
+    def __init__(self, canvas: Optional[ROOT.TCanvas] = None) -> None:
+        """
+        Initializes the Figure object.
 
-    def __init__(self, canvas=None):
+        Parameters
+        ----------
+        canvas : ROOT.TCanvas, optional
+            A ROOT canvas to associate with this figure. If None, it will be blank.
+        """
         self.__canvas = canvas
         self.__collections = []
 
 
-    def canvas(self):
+    def canvas(self) -> Optional[ROOT.TCanvas]:
+        """
+        Returns the associated ROOT canvas.
+
+        Returns
+        -------
+        ROOT.TCanvas or None
+            The associated canvas.
+        """
         return self.__canvas
 
 
-    def set_canvas( self , canvas ):
+    def set_canvas( self , canvas: ROOT.TCanvas ) -> None:
+        """
+        Sets a new ROOT canvas for the figure.
+
+        Parameters
+        ----------
+        canvas : ROOT.TCanvas
+            The new canvas to associate.
+        """
         self.__canvas = canvas
         self.__collections = []
 
 
-    def clear(self):
-        self.__canvas.Close()
-        for obj in self.__collections:
-            if obj:
+    def clear(self) -> None:
+        """
+        Closes the canvas and deletes all stored objects in the figure.
+        """
+        if self.__canvas:
+            self.__canvas.Close()
+        for obj, delete in self.__collections:
+            if obj and hasattr(obj,'Delete') and delete:
                 obj.Delete()
         self.__collections = []
         gc.collect()
 
 
-    def append(self, obj):
-        self.__collections.append(obj)
+    def append(self, obj: Any, delete: bool = True) -> None:
+        """
+        Appends an object to the figure's internal collection to prevent garbage collection.
+
+        Parameters
+        ----------
+        obj : Any
+            The ROOT object to store.
+        delete : bool, optional
+            Whether to delete the object when the figure is cleared, by default True.
+        """
+        self.__collections.append((obj, delete))
 
 
-    #
-    # Get pad. If none or not exist, return the main canvas
-    #
-    def get_pad( self, pad=None ):
+    def get_pad( self, pad: Optional[str] = None ) -> Union[ROOT.TCanvas, ROOT.TPad]:
+        """
+        Returns a specific pad by name or the main canvas.
 
-        if pad and (pad==primitive.GetName() for primitive in self.__canvas.GetListOfPrimitives()):
+        Parameters
+        ----------
+        pad : str, optional
+            The name of the pad. If None or not found, returns the main canvas.
+
+        Returns
+        -------
+        Union[ROOT.TCanvas, ROOT.TPad]
+            The requested pad or canvas.
+        """
+
+        if pad and any(pad==primitive.GetName() for primitive in self.__canvas.GetListOfPrimitives()):
             canvas = self.__canvas.GetPrimitive(pad)
         else:
             canvas = self.__canvas  
         return canvas
 
 
-    #
-    # Add histogram into the figure
-    #
-    def add_hist(self, hist,  drawopt='', pad=None):
+    def add_hist(self, hist: Union[TH1, TH2],  drawopt: str = '', pad: Optional[str] = None) -> None:
+        """
+        Adds a histogram to the figure and draws it.
+
+        Parameters
+        ----------
+        hist : Union[TH1, TH2]
+            The histogram to add.
+        drawopt : str, optional
+            ROOT draw options, by default ''.
+        pad : str, optional
+            The name of the pad to draw to.
+        """
         canvas = self.get_pad(pad)
         if not "same" in drawopt: drawopt += ' sames'
         canvas.cd()
@@ -60,12 +121,20 @@ class Figure( object ):
         canvas.Modified()
         canvas.Update()
         # add into the list of primitives
-        self.append(hist)
+        self.append( hist, False )
 
-    #
-    # Add legend into the figure
-    #
-    def add_legend(self, leg, pad=None):
+
+    def add_legend(self, leg: ROOT.TLegend, pad: Optional[str] = None) -> None:
+        """
+        Adds a legend to the figure.
+
+        Parameters
+        ----------
+        leg : ROOT.TLegend
+            The legend object to add.
+        pad : str, optional
+            The name of the pad to draw to.
+        """
         canvas = self.get_pad(pad)
         canvas.cd()
         leg.Draw() # add into the list of primitives
@@ -73,10 +142,18 @@ class Figure( object ):
         canvas.Update()
         self.append(leg)
 
-    #
-    # Set x label
-    #
-    def set_xlabel(self, xlabel, pad=None):
+
+    def set_xlabel(self, xlabel: str, pad: Optional[str] = None) -> None:
+        """
+        Sets the title for the X-axis.
+
+        Parameters
+        ----------
+        xlabel : str
+            The label text.
+        pad : str, optional
+            The name of the pad.
+        """
 
         canvas = self.get_pad(pad)
         for primitive in canvas.GetListOfPrimitives() :
@@ -87,10 +164,18 @@ class Figure( object ):
         canvas.Update()
 
 
-    #
-    # Set y label
-    #
-    def set_ylabel(self, ylabel, pad=None):
+
+    def set_ylabel(self, ylabel: str, pad: Optional[str] = None) -> None:
+        """
+        Sets the title for the Y-axis.
+
+        Parameters
+        ----------
+        ylabel : str
+            The label text.
+        pad : str, optional
+            The name of the pad.
+        """
 
         canvas = self.get_pad(pad)
         for primitive in canvas.GetListOfPrimitives() :
@@ -101,7 +186,17 @@ class Figure( object ):
         canvas.Update()
         
         
-    def set_zlabel(self, zlabel, pad=None):
+    def set_zlabel(self, zlabel: str, pad: Optional[str] = None) -> None:
+        """
+        Sets the title for the Z-axis.
+
+        Parameters
+        ----------
+        zlabel : str
+            The label text.
+        pad : str, optional
+            The name of the pad.
+        """
 
         canvas = self.get_pad(pad)
         for primitive in canvas.GetListOfPrimitives() :
@@ -112,7 +207,20 @@ class Figure( object ):
         canvas.Update()
 
 
-    def get_xaxis(self, pad=None):
+    def get_xaxis(self, pad: Optional[str] = None) -> Optional[ROOT.TAxis]:
+        """
+        Finds and returns the X-axis of the first histogram in the pad.
+
+        Parameters
+        ----------
+        pad : str, optional
+            The name of the pad.
+
+        Returns
+        -------
+        ROOT.TAxis or None
+            The X-axis object.
+        """
 
         canvas = self.get_pad(pad)
         for primitive in canvas.GetListOfPrimitives():
@@ -123,21 +231,47 @@ class Figure( object ):
 
         return None
 
-    def get_yaxis(self, pad=None):
+    def get_yaxis(self, pad: Optional[str] = None) -> Optional[ROOT.TAxis]:
+        """
+        Finds and returns the Y-axis of the first histogram in the pad.
+
+        Parameters
+        ----------
+        pad : str, optional
+            The name of the pad.
+
+        Returns
+        -------
+        ROOT.TAxis or None
+            The Y-axis object.
+        """
 
         canvas = self.get_pad(pad)
         for primitive in canvas.GetListOfPrimitives():
             if issubclass(type(primitive),TH1):
                 return primitive.GetYaxis()
             elif issubclass(type(primitive),TH2):
-                return primitive.GetXaxis()
+                return primitive.GetYaxis()
         return None
 
 
-    #
-    # Get xmin and xmax values into the canvas
-    #
-    def get_xaxis_ranges(self, only_filled=False, pad=None):
+
+    def get_xaxis_ranges(self, only_filled: bool = False, pad: Optional[str] = None) -> Tuple[float, float]:
+        """
+        Calculates the min and max X values currently displayed in the pad.
+
+        Parameters
+        ----------
+        only_filled : bool, optional
+            If True, only considers bins with content > 0, by default False.
+        pad : str, optional
+            The name of the pad.
+
+        Returns
+        -------
+        Tuple[float, float]
+            (xmin, xmax)
+        """
     
         xmin = sys.float_info.max
         xmax = sys.float_info.min
@@ -157,7 +291,21 @@ class Figure( object ):
 
 
 
-    def set_xaxis_ranges(self, xmin, xmax, for_all=False, pad=None):
+    def set_xaxis_ranges(self, xmin: float, xmax: float, for_all: bool = False, pad: Optional[str] = None) -> None:
+        """
+        Sets the displayed X-axis range.
+
+        Parameters
+        ----------
+        xmin : float
+            Lower bound.
+        xmax : float
+            Upper bound.
+        for_all : bool, optional
+            If True, sets the range for all objects; if False, uses SetLimits, by default False.
+        pad : str, optional
+            The name of the pad.
+        """
 
         # Get the axis from canvas
         axis = self.get_xaxis(pad)
@@ -173,7 +321,24 @@ class Figure( object ):
             canvas.Update()
 
 
-    def get_yaxis_ranges(self, pad=None, ignore_zeros=False, ignore_errors=False):
+    def get_yaxis_ranges(self, pad: Optional[str] = None, ignore_zeros: bool = False, ignore_errors: bool = False) -> Tuple[float, float]:
+        """
+        Calculates the min and max Y values currently displayed in the pad.
+
+        Parameters
+        ----------
+        pad : str, optional
+            The name of the pad.
+        ignore_zeros : bool, optional
+            If True, ignores bins with zero content, by default False.
+        ignore_errors : bool, optional
+            If True, ignores bin errors when calculating range, by default False.
+
+        Returns
+        -------
+        Tuple[float, float]
+            (ymin, ymax)
+        """
 
         ymin = sys.float_info.max
         ymax = sys.float_info.min
@@ -182,7 +347,6 @@ class Figure( object ):
         for primitive in canvas.GetListOfPrimitives():
 
             if isinstance(primitive, TH2):
-                x = primitive.GetXaxis()
                 y = primitive.GetYaxis()
                 nx = primitive.GetNbinsY()
                 ny = primitive.GetNbinsY()
@@ -214,7 +378,19 @@ class Figure( object ):
         return ymin, ymax
 
 
-    def set_yaxis_ranges(self, ymin, ymax, pad=None):
+    def set_yaxis_ranges(self, ymin: float, ymax: float, pad: Optional[str] = None) -> None:
+        """
+        Sets the displayed Y-axis range.
+
+        Parameters
+        ----------
+        ymin : float
+            Lower bound.
+        xmax : float
+            Upper bound.
+        pad : str, optional
+            The name of the pad.
+        """
 
         axis = self.get_yaxis(pad)
         canvas = self.get_pad(pad)
@@ -226,9 +402,23 @@ class Figure( object ):
             canvas.Update()
 
 
-    def savefig(self, output):
-        self.__canvas.SaveAs(output)
+    def savefig(self, output: str) -> None:
+        """
+        Saves the figure to a file.
+
+        Parameters
+        ----------
+        output : str
+            The output file path.
+        """
+        if self.__canvas:
+            self.__canvas.SaveAs(output)
 
 
-    def show(self):
-        self.__canvas.Draw()
+    def show(self) -> None:
+        """
+        Draws the main canvas.
+        """
+        if self.__canvas:
+            self.__canvas.Draw()
+

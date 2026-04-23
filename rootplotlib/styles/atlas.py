@@ -1,16 +1,18 @@
 
 
+from typing import Optional
+from ROOT import gROOT, gStyle
+from ROOT import TLatex, gPad
+import rootplotlib as rpl
 
 __all__ = [ "set_atlas_style",
             "set_atlas_label",
           ]
 
-from ROOT import gROOT, gStyle
-from ROOT import TLatex, gPad
-
-import rootplotlib as rpl
-
-def set_atlas_style ():
+def set_atlas_style () -> None:
+  """
+  Applies the official ATLAS style settings to the global ROOT gStyle.
+  """
   
   print ("\nApplying ATLAS style settings...")
   icol=0
@@ -59,7 +61,23 @@ def set_atlas_style ():
   gStyle.SetPalette(1)
 
 
-def set_atlas_label( x, y, text, pad=None, fig=None):
+def set_atlas_label( x: float, y: float, text: str, pad: Optional[str] = None, fig: Optional['rpl.Figure'] = None) -> None:
+  """
+  Draws the 'ATLAS' label with additional status text (e.g., 'Internal', 'Preliminary').
+
+  Parameters
+  ----------
+  x : float
+      X-coordinate in NDC.
+  y : float
+      Y-coordinate in NDC.
+  text : str
+      Status text to display next to 'ATLAS'.
+  pad : str, optional
+      The name of the pad.
+    fig : rpl.Figure, optional
+        The figure to use. If None, the current global figure is used.
+  """
 
   if fig is None:
     fig = rpl.get_figure()

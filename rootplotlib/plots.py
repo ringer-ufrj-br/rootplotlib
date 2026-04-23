@@ -1,3 +1,7 @@
+from typing import Optional, Sequence, Any
+import ROOT
+import rootplotlib as rpl
+from rootplotlib.figures import Figure
 
 __all__ = ["plot_profiles",
            "add_hist",
@@ -5,14 +9,10 @@ __all__ = ["plot_profiles",
            "plot_hist_ratios"]
 
 
-import ROOT
-from typing import Sequence
-import rootplotlib as rpl
-
-
 def add_hist(hist: ROOT.TH1,
              drawopt: str="pE1",
-             pad: str=None):
+             pad: Optional[str]=None,
+             fig: Optional[Figure]=None) -> None:
     """
     Adds histogram to current figure
 
@@ -25,7 +25,7 @@ def add_hist(hist: ROOT.TH1,
     pad : str, optional
         Pad to draw to, by default None
     """
-    fig = rpl.get_figure()
+    fig = rpl.get_figure() if fig is None else fig
     fig.add_hist(hist, drawopt, pad)
 
 
@@ -66,17 +66,38 @@ def plot_profiles(hists: Sequence[ROOT.TH1],
                   doRatioCanvas: bool=False,
                   ratio_label: str="Ratio",
                   ref_place: str="den",
-                  **canvas_kwargs) -> rpl.Figure:
+                  **canvas_kwargs: Any) -> rpl.Figure:
     
     """
-    Function for plotting profile histograms. This function may
-    plot only the histograms using plot_hists or plot them with
-    their ratios using plot_hist_ratio.
+    Plots profile histograms, optionally on a ratio canvas.
+
+    Parameters
+    ----------
+    hists : Sequence[ROOT.TH1]
+        Sequence of histograms to be plotted.
+    xlabel : str
+        X-axis label.
+    ylabel : str
+        Y-axis label.
+    colors : Sequence[int]
+        Collection of ROOT colors for each histogram.
+    markers : Sequence[int]
+        Collection of ROOT marker styles for each histogram.
+    drawopt : str, optional
+        ROOT draw operation, by default "pE1".
+    doRatioCanvas : bool, optional
+        If True, creates a ratio canvas (requires >1 histogram), by default False.
+    ratio_label : str, optional
+        Label for the ratio Y-axis, by default "Ratio".
+    ref_place : str, optional
+        If 'den', use first hist as denominator; if 'num', use as numerator in ratio, by default "den".
+    **canvas_kwargs : Any
+        Additional keyword arguments for create_canvas or create_ratio_canvas.
 
     Returns
     -------
-    _type_
-        _description_
+    rpl.Figure
+        Figure with the histograms plotted.
     """
     doRatio = True if (doRatioCanvas and (len(hists)>1)) else False
     if doRatio:
@@ -106,7 +127,7 @@ def plot_hist(hists: Sequence[ROOT.TH1],
               colors: Sequence[int],
               markers: Sequence[int],
               drawopt: str="pE1",
-              **canvas_kwargs) -> rpl.Figure:
+              **canvas_kwargs: Any) -> rpl.Figure:
     """
     Plots several histograms from a sequence
 
@@ -142,7 +163,7 @@ def plot_hist(hists: Sequence[ROOT.TH1],
     
     fig.set_xlabel(xlabel)
     fig.set_ylabel(ylabel)
-    rpl.format_canvas_axes(XLabelSize=18, YLabelSize=18, XTitleOffset=0.87, YTitleOffset=1.5)
+    rpl.format_canvas_axes(XLabelSize=18, YLabelSize=18, XTitleOffset=0.87, YTitleOffset=1.5, fig=fig)
     
     return fig
 
@@ -155,7 +176,7 @@ def plot_hist_ratios(hists: Sequence[ROOT.TH1],
                      markers: Sequence[int],
                      ref_place: str="den",
                      drawopt: str="pE1",
-                     **canvas_kwargs) -> rpl.Figure:
+                     **canvas_kwargs: Any) -> rpl.Figure:
     """
     Plots several histogram on a ratio canvas. This function considers the first histogram
     as the reference one. On the top pad the histograms are plotted.
